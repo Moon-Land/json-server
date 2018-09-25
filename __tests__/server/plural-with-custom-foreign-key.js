@@ -107,11 +107,11 @@ describe('Server with custom foreign key', () => {
   describe('DELETE /:resource/:id', () => {
     test('should respond with empty data, destroy resource and dependent resources', async () => {
       await request(server)
-        .del('/posts/1')
+        .del('/posts/1,2')
         .expect({})
         .expect(200)
-      assert.equal(db.posts.length, 1)
-      assert.equal(db.comments.length, 1)
+      assert.equal(db.posts.length, 0)
+      assert.equal(db.comments.length, 0)
     })
   })
 })

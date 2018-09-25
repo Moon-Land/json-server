@@ -290,21 +290,29 @@ module.exports = (db, name, opts) => {
   }
 
   // DELETE /name/:id
+  // DELETE /name/:id,:id
   function destroy(req, res, next) {
-    const resource = db
-      .get(name)
-      .removeById(req.params.id)
-      .value()
-
-    // Remove dependents documents
-    const removable = db._.getRemovable(db.getState(), opts)
-    removable.forEach(item => {
-      db.get(item.name)
-        .removeById(item.id)
+    const idList = req.params.id
+      .split(',')
+      .filter(item => item !== '' || item !== undefined || item !== null)
+    function destroyById(id) {
+      const resource = db
+        .get(name)
+        .removeById(id)
         .value()
-    })
 
-    if (resource) {
+      // Remove dependents documents
+      const removable = db._.getRemovable(db.getState(), opts)
+      removable.forEach(item => {
+        db.get(item.name)
+          .removeById(item.id)
+          .value()
+      })
+      return resource
+    }
+    let resourceList = idList.map(destroyById)
+    // if has one more id matched -> will not return 404
+    if (resourceList.length >= 1 && resourceList.some(item => item)) {
       res.locals.data = {}
     }
 
